@@ -9,14 +9,12 @@ from llm_agent_api.apihelper.constants import TextInput
 from llm_agent_api.apihelper.logger import log_config
 from llm_agent_api.apihelper.settings import env_test
 
-from fastapi import FastAPI
-
-
 
 dictConfig(log_config)
 app = FastAPI(debug=True)
 
 env_test()
+
 
 @app.get("/")
 def status_check() -> dict[str, str]:
