@@ -2,7 +2,7 @@
 name = "llmagentapi"
 version = "0.1.0"
 description = ""
-authors = ["Dragos Toma <dragos.toma@repsmate.com>"]
+authors = ["Dragos Toma <tomadragos96@gmail.com>"]
 readme = "README.md"
 packages = [ { include = "llm_agent_api", from = "src" } ]
 
