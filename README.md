@@ -22,6 +22,7 @@ returns:
 ```
 
 before commiting, run 
+ - pip list --format=freeze > requirements.txt
  - src/llm_agent_api/start_fastapi_server.sh
  - pytest
  - black . 
