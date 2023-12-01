@@ -15,7 +15,7 @@ dictConfig(log_config)
 app = FastAPI(debug=True)
 chat_retrieve_pipeline = ChatRetrievePipeline(CHATS_TXT,QDRANT_CHATS,TaskType.CHAT)
 email_retrieve_pipeline = EmailRetrievePipeline(EMAILS_TXT,QDRANT_EMAILS,TaskType.EMAIL)
-retrieval_agent = RetrievalAgent([chat_retrieve_pipeline.qdrant,email_retrieve_pipeline.qdrant])
+retrieval_agent = RetrievalAgent(chat_retrieve_pipeline.qdrant,email_retrieve_pipeline.qdrant)
 
 
 @app.get("/")

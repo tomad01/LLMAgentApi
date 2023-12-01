@@ -93,22 +93,31 @@ class LLMPipeline:
     
     
 class RetrievalAgent:
-    def __init__(self,vector_stores):
+    def __init__(self,chat_vector_store,email_vector_store):
   
         tools = load_tools(["google-serper"], llm=llm)
-        for vector_store in vector_stores:
-            chats_retrieve = RetrievalQA.from_chain_type(
-                llm=llm, chain_type="stuff", retriever=vector_store.as_retriever()
-            )              
-            tools = tools+[
-                Tool(
-                    name="chats data",
-                    func=chats_retrieve.run,
-                    description="useful for when you need to answer questions about robots. Input should be a fully formed question.",
-                ),
-            ]         
+        
+        chats_retrieve = RetrievalQA.from_chain_type(
+            llm=llm, chain_type="stuff", retriever=chat_vector_store.as_retriever()
+        )                 
+        emails_retrieve = RetrievalQA.from_chain_type(
+            llm=llm, chain_type="stuff", retriever=email_vector_store.as_retriever()
+        )              
+        tools = tools+[
+            Tool(
+                name="email data",
+                func=emails_retrieve.run,
+                description="useful for when you need to answer questions about various it stuff. Input should be a fully formed question.",
+            ),
+            Tool(
+                name="chats data",
+                func=chats_retrieve.run,
+                description="useful for when you need to answer questions about robots. Input should be a fully formed question.",
+            ),            
+        ]                
         self.agent = initialize_agent(
-            tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
+            tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True,
+            handle_parsing_errors="Check your output and make sure it conforms!",
         )        
         
     def run(self,query):
