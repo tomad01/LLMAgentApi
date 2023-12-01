@@ -8,8 +8,8 @@ curl -X POST http://0.0.0.0:8000/generate -H "Content-Type: application/json" -d
 ```
 
 
-before commiting run 
-src/llm_agent_api/start_fastapi_server.sh
-pytest
-black . 
-pylint src/llm_agent_api
+before commiting, run 
+ - src/llm_agent_api/start_fastapi_server.sh
+ - pytest
+ - black . 
+ - pylint src/llm_agent_api
