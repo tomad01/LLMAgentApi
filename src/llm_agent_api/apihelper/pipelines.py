@@ -1,8 +1,7 @@
-import os
+
 import logging
-from pathlib import Path
 from typing import Tuple
-from dotenv import load_dotenv
+
 
 from langchain.document_loaders import TextLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -13,63 +12,56 @@ from langchain.chat_models import ChatOpenAI
 
 logger = logging.getLogger(__name__)
 
-
-dotenv_path = Path(os.path.dirname(__file__)).parent / ".env"
-load_dotenv(dotenv_path)
 # we are using the default model, ada_002
 embeddings = OpenAIEmbeddings()
 
-class ChatRetrievePipeline:
+
+class RetrievePipeline:
     """this looks so ugly because we are using
     a dummy qdrant client based on a locally saved vector db
     in prod pobably we would use a server
     if embeddings are already created then the client loads them from disk"""
-    def __init__(self):
-        loader = TextLoader(os.environ['CHATS_TXT'])
+    def __init__(self,text_path,qdrant_path,collection_name,k=5):
+        loader = TextLoader(text_path)
         documents = loader.load()
         text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
         docs = text_splitter.split_documents(documents)        
         self.qdrant = Qdrant.from_documents(
             docs,
             embeddings,
-            path=os.environ["QDRANT_CHATS"],
-            collection_name="chats",
-        )        
-        logger.info("chats qdrant initialised")
-        
-    def parse(self,text:str)->str:
+            path=qdrant_path,
+            collection_name=collection_name,
+        )       
+        logger.info(f"{collection_name} qdrant initialised")
+        self.max_results = k
+    
+    def retrieve(self,query:str,parameters:dict)->list[str]:
+        # probably we have to experiment to find out the best settings or search method
+        if "score_threshold" in  parameters:
+            score_threshold = parameters["score_threshold"]
+        else:
+            score_threshold = 0.7
+        found_docs = self.qdrant.similarity_search_with_score(query, k=self.max_results, score_threshold=score_threshold)
+        return [item[0][0].page_content for item in found_docs]
+
+class ChatRetrievePipeline(RetrievePipeline):
+    def __init__(self,text_path,qdrant_path,collection_name):
+        RetrievePipeline.__init__(text_path,qdrant_path,collection_name)
+    
+    @staticmethod
+    def parse(text:str)->str:
         # apply some specific chats parsing
         return text
-            
-    def retrieve(self,query:str)->list[str]:
-        found_docs = self.qdrant.max_marginal_relevance_search(query, k=2, fetch_k=2)
-        return found_docs
 
-class EmailRetrievePipeline:
-    """this looks so ugly because we are using
-    a dummy qdrant client based on a locally saved vector db
-    in prod pobably we would use a server
-    if embeddings are already created then the client loads them from disk"""
-    def __init__(self):
-        loader = TextLoader(os.environ['EMAILS_TXT'])
-        documents = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
-        docs = text_splitter.split_documents(documents)        
-        self.qdrant = Qdrant.from_documents(
-            docs,
-            embeddings,
-            path=os.environ["QDRANT_EMAILS"],
-            collection_name="emails",
-        )       
-        logger.info("emails qdrant initialised")
-    def parse(self,text:str)->str:
+
+class EmailRetrievePipeline(RetrievePipeline):
+    def __init__(self,text_path,qdrant_path,collection_name):
+        RetrievePipeline.__init__(text_path,qdrant_path,collection_name)
+        
+    @staticmethod
+    def parse(text:str)->str:
         # apply some specific email parsing
         return text
-    
-    def retrieve(self,query:str)->list[str]:
-        # probably we have to experiment to find out the best settings or search method
-        found_docs = self.qdrant.max_marginal_relevance_search(query, k=2, fetch_k=2)
-        return found_docs
     
 class LLMAgentPipeline:
     def __init__(self):
