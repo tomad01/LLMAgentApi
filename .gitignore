@@ -1,0 +1,12 @@
+.DS_Store
+.env
+__pycache__/
+count_tokens.ipynb
+langchain_db_tool.py
+langchain_db_tool_example.py
+langchain_order_a_product_example.py
+langchain_web_tool_example.py
+make_rag_dataset.ipynb
+test_kan.ipynb
+test_nn.ipynb
+test_ragas.ipynb
